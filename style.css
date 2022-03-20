@@ -1,0 +1,26 @@
+body {
+    background-color: gray;
+}
+
+canvas {
+    display: flex;
+    margin: 1rem;
+    flex-wrap: wrap;
+    /* justify-content: center; */
+} 
+
+h2 {
+    margin-left: 1rem;
+}
+
+.container {
+    display: flex;
+}
+
+.debug{
+    
+    display: block;
+    background-color: darkgrey;
+    margin-left: 1rem;
+    font-size: 1.3rem;
+}
