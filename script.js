@@ -49,18 +49,48 @@ let comboShip = new Ship(
     ]
 );
 
+let carrier = [
+    [1,1,1,1,1],
+];
+
+// let carrier = [
+//     [1],
+//     [1],
+//     [1],
+//     [1],
+//     [1]
+// ];
+
+let battleship = [
+    [1,1,1,1]
+];
+
+let destroyer = [
+    [1,1,1]
+];
+
+let submarine = [
+    [1,1,1]
+];
+
+let patrol = [
+    [1,1]
+];
+
 // playerOneAddShip.onclick = placeShip(playerOneBoard, Math.floor(Math.random() * 10), Math.floor(Math.random() * 10));
 playerOneAddShip.addEventListener('click', placeRandomShip);
 checkHitButton.addEventListener('click', detectHit);
+console.log(battleship);
+console.log(rotateShip(battleship));
+
+placeShip(playerOneBoard, carrier, 0, 5);
+placeShip(playerOneBoard, battleship, 0, 0);
+placeShip(playerOneBoard, destroyer, 5, 3);
+placeShip(playerOneBoard, submarine, 7, 6);
+placeShip(playerOneBoard, patrol, 8, 9);
 
 
-placeShip(playerOneBoard, verticalShip.layout, 0, 1);
-debugOne.innerHTML = playerOneBoard.join('\n');
-console.log(verticalShip.layout.length);
-console.log(verticalShip.layout[0].length);
-
-
-
+// debugOne.innerHTML = playerOneBoard.join('\n');
 function Ship(layout) {
     this.layout = layout;
 }
@@ -128,8 +158,8 @@ function detectHit(board, boardX, boardY) {
     debugOne.innerHTML = playerOneBoard.join('\n');
 }
 
-function rotateShip(shipLayout) {
-    const N = shipLayout.length;
+function rotateShip(ship) {
+    const N = ship;
     // Consider all squares one by one
     for (let x = 0; x < N / 2; x++) {
 
@@ -139,23 +169,23 @@ function rotateShip(shipLayout) {
 
             // Store current cell in
             // temp variable
-            let temp = shipLayout[x][y];
+            let temp = ship[x][y];
 
             // Move values from right to top
-            shipLayout[x][y] = shipLayout[y][N - 1 - x];
+            ship[x][y] = ship[y][N - 1 - x];
 
             // Move values from bottom to right
-            shipLayout[y][N - 1 - x]
-                = shipLayout[N - 1 - x][N - 1 - y];
+            ship[y][N - 1 - x]
+                = ship[N - 1 - x][N - 1 - y];
 
             // Move values from left to bottom
-            shipLayout[N - 1 - x][N - 1 - y] = shipLayout[N - 1 - y][x];
+            ship[N - 1 - x][N - 1 - y] = ship[N - 1 - y][x];
 
             // Assign temp to left
-            shipLayout[N - 1 - y][x] = temp;
+            ship[N - 1 - y][x] = temp;
         }
     }
-    return shipLayout;
+    return ship;
 }
 
 function placeRandomShip() {
