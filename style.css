@@ -20,7 +20,11 @@ h2 {
 .debug{
     
     display: block;
-    background-color: darkgrey;
+    background-color: rgb(102, 147, 233);
     margin-left: 1rem;
     font-size: 1.3rem;
+}
+
+.guesses {
+    background-color: rgb(226, 159, 147);
 }
