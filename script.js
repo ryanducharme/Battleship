@@ -1,34 +1,71 @@
-// let canvas = document.querySelector('#playerOneCanvas');
-// let context = canvas.getContext('2d');
-let debugOne = document.getElementById('debugP1');
-let debugOneGuesses  = document.getElementById('debugP1Guesses');
-let debugTwo = document.getElementById('debugP2');
 
+
+
+
+
+
+let debugOne = document.getElementById('debugP1');
+let debugOneGuesses = document.getElementById('debugP1Guesses');
+let debugTwo = document.getElementById('debugP2');
+let debugTwoGuesses = document.getElementById('debugP2Guesses');
 let playerOneAddShip = document.getElementById('playerOneAddShip');
 let checkHitButton = document.getElementById('checkHitButton');
 
-// let playerOneBoard = createBoard(10);
-// let playerTwoBoard = createBoard(10);
 
-function Game(player1, player2) {
-    this.playerOne = player1;
-    this.playerTwo = player2;
+function Guess(x, y) {
+    this.x = x;
+    this.y = y;
+    this.hit = false;
+}
+
+function Game() {
+    this.playerOne = new Player('p1');
+    this.playerTwo = new Player('p2');
+    this.running = false;
+    
+    this.currentPlayer = this.playerOne;
+    this.turnCount = 1;
+    this.checkWinCondition = function () {
+        return false;
+    }
+    this.takeTurn = function (player, guess) {
+        if (this.checkWinCondition() === false) {
+
+            if (this.turnCount % 2 === 0) {
+                // game.takeTurn(game.playerTwo);
+                this.currentPlayer = this.playerTwo;
+            } else {
+                // game.takeTurn(game.playerOne);
+                this.currentPlayer = this.playerOne;
+            }
+            console.log(this.currentPlayer.name);
+            this.turnCount++;
+        }
+    }
     this.checkHit = function (senderGuessBoard, receiverGameBoard, x, y) {
+
         //todo: check if you killed the ship somehow        
         if (receiverGameBoard.gameBoard[y][x] === 1) {
             receiverGameBoard.gameBoard[y][x]++;
             senderGuessBoard.guessBoard[y][x] = 'X';
             console.log('hit');
+            // return true;
+
         } else {
             senderGuessBoard.guessBoard[y][x] = '-';
             console.log('miss');
+            // return false;
         }
+
+
     }
 }
 
-function Player() {
+function Player(name) {
+    this.name = name;
     this.gameBoard = createBoard(10);
     this.guessBoard = createBoard(10);
+    this.hitCount = 0;
     this.ships =
         [
             new Ship(
@@ -87,8 +124,8 @@ function Player() {
             console.log(`Desired location X:${chosenX} Y: ${chosenY} is out of bounds`);
             pieceConflict = true;
         }
-    
-    
+
+
         if (pieceConflict == false) {
             for (let shipX = 0; shipX < shipLayout[0].length; shipX++) {
                 for (let shipY = 0; shipY < shipLayout.length; shipY++) {
@@ -98,7 +135,7 @@ function Player() {
                 }
             }
         }
-        
+
     };
 }
 
@@ -108,11 +145,11 @@ function Ship(name, layout) {
     this.health = layout[0].length;
     this.x = null;
     this.y = null;
-    this.calcShipBaseAxis = function() {
+    this.calcShipBaseAxis = function () {
         let horizontal = false;
         let vertical = false;
         let combo = false;
-    
+
         if (this.layout.length === 1) {
             horizontal = true;
         }
@@ -128,7 +165,7 @@ function Ship(name, layout) {
             return 'vertical';
         }
     }
-    
+
 }
 
 function createBoard(boardSize) {
@@ -144,7 +181,7 @@ function createBoard(boardSize) {
 }
 
 
-let game = new Game(new Player(), new Player());
+let game = new Game();
 
 
 //add player one ships
@@ -173,3 +210,20 @@ debugOne.value = game.playerOne.gameBoard.join('\n').replace(/0/g, ' ');
 debugTwo.value = game.playerTwo.gameBoard.join('\n').replace(/0/g, ' ');
 
 debugOneGuesses.value = game.playerOne.guessBoard.join('\n').replace(/0/g, ' ');
+debugTwoGuesses.value = game.playerTwo.guessBoard.join('\n').replace(/0/g, ' ');
+
+
+
+//game loop
+game.running = true;
+let count = 0
+while(game.running) {
+    
+    game.takeTurn(game.currentPlayer, new Guess(2,2));
+    count++;
+
+    if(count === 10) {
+        game.running = false;
+    }
+    
+}
