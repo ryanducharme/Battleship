@@ -1,15 +1,17 @@
-
-
-
-
-
-
 let debugOne = document.getElementById('debugP1');
 let debugOneGuesses = document.getElementById('debugP1Guesses');
+
 let debugTwo = document.getElementById('debugP2');
 let debugTwoGuesses = document.getElementById('debugP2Guesses');
-let playerOneAddShip = document.getElementById('playerOneAddShip');
-let checkHitButton = document.getElementById('checkHitButton');
+
+let p1GuessInput  = document.getElementById('p1GuessInput');
+let p2GuessInput  = document.getElementById('p2GuessInput');
+
+let p1GuessBtn = document.getElementById('p1GuessBtn');
+let p2GuessBtn = document.getElementById('p2GuessBtn');
+
+p1GuessBtn.onclick = p1Submit;
+p2GuessBtn.onclick = p2Submit;
 
 
 function Guess(x, y) {
@@ -42,17 +44,17 @@ function Game() {
             this.turnCount++;
         }
     }
-    this.checkHit = function (senderGuessBoard, receiverGameBoard, x, y) {
+    this.checkHit = function (sender, receiver, x, y) {
 
         //todo: check if you killed the ship somehow        
-        if (receiverGameBoard.gameBoard[y][x] === 1) {
-            receiverGameBoard.gameBoard[y][x]++;
-            senderGuessBoard.guessBoard[y][x] = 'X';
+        if (receiver.gameBoard[y][x] === 1) {
+            receiver.gameBoard[y][x]++;
+            sender.guessBoard[y][x] = 'X';
             console.log('hit');
             // return true;
 
         } else {
-            senderGuessBoard.guessBoard[y][x] = '-';
+            sender.guessBoard[y][x] = '-';
             console.log('miss');
             // return false;
         }
@@ -185,7 +187,10 @@ let game = new Game();
 
 
 //add player one ships
-game.playerOne.placeShip(game.playerOne.ships[1], 2, 0);
+game.playerOne.placeShip(game.playerOne.ships[0], 2, 0);
+game.playerOne.placeShip(game.playerOne.ships[2], 6, 3);
+game.playerOne.placeShip(game.playerOne.ships[3], 2, 7);
+game.playerOne.placeShip(game.playerOne.ships[4], 8, 9);
 
 //add player two ships
 game.playerTwo.placeShip(game.playerTwo.ships[0], 2, 0);
@@ -193,37 +198,67 @@ game.playerTwo.placeShip(game.playerTwo.ships[1], 2, 4);
 game.playerTwo.placeShip(game.playerTwo.ships[2], 2, 6);
 
 //player one takes a guess at player twos board
-game.checkHit(game.playerOne, game.playerTwo, 2, 0);
-game.checkHit(game.playerOne, game.playerTwo, 0, 0);
-game.checkHit(game.playerOne, game.playerTwo, 3, 0);
-game.checkHit(game.playerOne, game.playerTwo, 0, 0);
-game.checkHit(game.playerOne, game.playerTwo, 3, 2);
-game.checkHit(game.playerOne, game.playerTwo, 4, 4);
-game.checkHit(game.playerOne, game.playerTwo, 4, 6);
-game.checkHit(game.playerOne, game.playerTwo, 4, 7);
+// game.checkHit(game.playerOne, game.playerTwo, 2, 0);
+// game.checkHit(game.playerOne, game.playerTwo, 0, 0);
+// game.checkHit(game.playerOne, game.playerTwo, 3, 0);
+// game.checkHit(game.playerOne, game.playerTwo, 0, 0);
+// game.checkHit(game.playerOne, game.playerTwo, 3, 2);
+// game.checkHit(game.playerOne, game.playerTwo, 4, 4);
+// game.checkHit(game.playerOne, game.playerTwo, 4, 6);
+// game.checkHit(game.playerOne, game.playerTwo, 4, 7);
 
 //player two takes a guess at player ones board
 // game.checkHit(game.playerTwo.gameBoard, 3, 0);
 
 //draw
-debugOne.value = game.playerOne.gameBoard.join('\n').replace(/0/g, ' ');
-debugTwo.value = game.playerTwo.gameBoard.join('\n').replace(/0/g, ' ');
+function draw() {
+    debugOne.value = game.playerOne.gameBoard.join('\n').replace(/0/g, ' ');
+    debugOneGuesses.value = game.playerOne.guessBoard.join('\n').replace(/0/g, ' ');
 
-debugOneGuesses.value = game.playerOne.guessBoard.join('\n').replace(/0/g, ' ');
-debugTwoGuesses.value = game.playerTwo.guessBoard.join('\n').replace(/0/g, ' ');
 
+    debugTwo.value = game.playerTwo.gameBoard.join('\n').replace(/0/g, ' ');
+    debugTwoGuesses.value = game.playerTwo.guessBoard.join('\n').replace(/0/g, ' ');
+}
+// debugOne.value = game.playerOne.gameBoard.join('\n').replace(/0/g, ' ');
+// debugOneGuesses.value = game.playerOne.guessBoard.join('\n').replace(/0/g, ' ');
+
+
+// debugTwo.value = game.playerTwo.gameBoard.join('\n').replace(/0/g, ' ');
+// debugTwoGuesses.value = game.playerTwo.guessBoard.join('\n').replace(/0/g, ' ');
+
+draw();
 
 
 //game loop
 game.running = true;
 let count = 0
-while(game.running) {
-    
-    game.takeTurn(game.currentPlayer, new Guess(2,2));
-    count++;
 
-    if(count === 10) {
-        game.running = false;
-    }
-    
+
+function p1Submit() {
+    //check hit and update
+    let coords = p1GuessInput.value.split(',');
+    game.checkHit(game.playerOne, game.playerTwo, coords[0], coords[1]);
+    draw();
+    // console.log('asd');
 }
+
+
+
+function p2Submit() {
+    //check hit and update
+    let coords = p2GuessInput.value.split(',');
+    game.checkHit(game.playerTwo, game.playerOne, coords[0], coords[1]);
+    draw();
+    // console.log('asd');
+}
+
+// while(game.running) {
+    
+//     game.takeTurn(game.currentPlayer, new Guess(2,2));
+//     count++;
+
+//     if(count === 10) {
+//         game.running = false;
+//     }
+    
+// }

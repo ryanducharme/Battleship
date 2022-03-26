@@ -1,5 +1,8 @@
 body {
+    /* margin-left: 20%; */
     background-color: gray;
+    max-width: 800px;
+    margin: auto;
 }
 
 canvas {
