@@ -41,25 +41,28 @@ function Game() {
                 this.currentPlayer = this.playerOne;
             }
             console.log(this.currentPlayer.name);
+            console.log(this.turnCount);
             this.turnCount++;
         }
-    }
-    this.checkHit = function (sender, receiver, x, y) {
-
-        //todo: check if you killed the ship somehow        
-        if (receiver.gameBoard[y][x] === 1) {
-            receiver.gameBoard[y][x]++;
-            sender.guessBoard[y][x] = 'X';
-            console.log('hit');
-            // return true;
-
-        } else {
-            sender.guessBoard[y][x] = '-';
-            console.log('miss');
-            // return false;
-        }
-
-
+    }    
+    this.checkHit = function(initiator, playerToHit, x, y) {
+        //return name of ship on given x, y gameboard coords
+        console.log(`X:${x} Y:${y}`);
+        console.log(`${playerToHit.name}`);
+        playerToHit.fleet.every(function (ship) {
+            
+            // console.log(`${ship.name} ${ship.x}, ${ship.y}`);    
+            if((x >= ship.x && x <= ship.layout[0].length) && (y === ship.y)) {
+                console.log(`${initiator.name} hit ${playerToHit.name}'s ${ship.name} at ${x},${y}`);
+                console.log(ship.layout[y - ship.y][x - ship.x]++);
+                console.log(ship.layout);
+                playerToHit.gameBoard[y][x]++;
+                initiator.guessBoard[y][x] = 'X';
+            } else {
+                initiator.guessBoard[y][x] = '-';
+                console.log('miss');
+            }
+        });
     }
 }
 
@@ -68,7 +71,7 @@ function Player(name) {
     this.gameBoard = createBoard(10);
     this.guessBoard = createBoard(10);
     this.hitCount = 0;
-    this.ships =
+    this.fleet =
         [
             new Ship(
                 'Carrier',
@@ -133,7 +136,8 @@ function Player(name) {
                 for (let shipY = 0; shipY < shipLayout.length; shipY++) {
                     ship.x = chosenX;
                     ship.y = chosenY;
-                    this.gameBoard[chosenY + shipY][chosenX + shipX] = 1;
+                    // this.gameBoard[chosenY + shipY][chosenX + shipX] = 1;
+                    this.gameBoard[chosenY + shipY][chosenX + shipX] = ship.layout[shipY][shipX];
                 }
             }
         }
@@ -145,8 +149,8 @@ function Ship(name, layout) {
     this.name = name;
     this.layout = layout;
     this.health = layout[0].length;
-    this.x = null;
-    this.y = null;
+    this.x = undefined;
+    this.y = undefined;
     this.calcShipBaseAxis = function () {
         let horizontal = false;
         let vertical = false;
@@ -182,20 +186,34 @@ function createBoard(boardSize) {
     return board;
 }
 
+function p1Submit() {
+    //check hit and update
+    let coords = p1GuessInput.value.split(',');
+    game.checkHit(game.playerOne, game.playerTwo, parseInt(coords[0]), parseInt(coords[1]));
+    draw();
+}
+
+function p2Submit() {
+    //check hit and update
+    let coords = p2GuessInput.value.split(',');
+    game.checkHit(game.playerTwo, game.playerOne, parseInt(coords[0]), parseInt(coords[1]));
+    draw();
+}
 
 let game = new Game();
 
 
 //add player one ships
-game.playerOne.placeShip(game.playerOne.ships[0], 2, 0);
-game.playerOne.placeShip(game.playerOne.ships[2], 6, 3);
-game.playerOne.placeShip(game.playerOne.ships[3], 2, 7);
-game.playerOne.placeShip(game.playerOne.ships[4], 8, 9);
+game.playerOne.placeShip(game.playerOne.fleet[0], 1, 0);
+game.playerOne.placeShip(game.playerOne.fleet[1], 4, 2);
+game.playerOne.placeShip(game.playerOne.fleet[2], 6, 3);
+game.playerOne.placeShip(game.playerOne.fleet[3], 2, 7);
+game.playerOne.placeShip(game.playerOne.fleet[4], 8, 9);
 
 //add player two ships
-game.playerTwo.placeShip(game.playerTwo.ships[0], 2, 0);
-game.playerTwo.placeShip(game.playerTwo.ships[1], 2, 4);
-game.playerTwo.placeShip(game.playerTwo.ships[2], 2, 6);
+game.playerTwo.placeShip(game.playerTwo.fleet[0], 2, 0);
+game.playerTwo.placeShip(game.playerTwo.fleet[1], 2, 4);
+game.playerTwo.placeShip(game.playerTwo.fleet[2], 2, 6);
 
 //player one takes a guess at player twos board
 // game.checkHit(game.playerOne, game.playerTwo, 2, 0);
@@ -219,38 +237,12 @@ function draw() {
     debugTwo.value = game.playerTwo.gameBoard.join('\n').replace(/0/g, ' ');
     debugTwoGuesses.value = game.playerTwo.guessBoard.join('\n').replace(/0/g, ' ');
 }
-// debugOne.value = game.playerOne.gameBoard.join('\n').replace(/0/g, ' ');
-// debugOneGuesses.value = game.playerOne.guessBoard.join('\n').replace(/0/g, ' ');
-
-
-// debugTwo.value = game.playerTwo.gameBoard.join('\n').replace(/0/g, ' ');
-// debugTwoGuesses.value = game.playerTwo.guessBoard.join('\n').replace(/0/g, ' ');
 
 draw();
-
 
 //game loop
 game.running = true;
 let count = 0
-
-
-function p1Submit() {
-    //check hit and update
-    let coords = p1GuessInput.value.split(',');
-    game.checkHit(game.playerOne, game.playerTwo, coords[0], coords[1]);
-    draw();
-    // console.log('asd');
-}
-
-
-
-function p2Submit() {
-    //check hit and update
-    let coords = p2GuessInput.value.split(',');
-    game.checkHit(game.playerTwo, game.playerOne, coords[0], coords[1]);
-    draw();
-    // console.log('asd');
-}
 
 // while(game.running) {
     
@@ -262,3 +254,23 @@ function p2Submit() {
 //     }
     
 // }
+
+
+// function checkBoundingBox(x, y) {
+//     //return name of ship on given x, y gameboard coords
+//     console.log(`X:${x} Y:${y}`);
+    
+//     game.playerOne.ships.forEach(function (ship) {
+//         // console.log(`${ship.name} ${ship.x}, ${ship.y}`);
+        
+//        if((x >= ship.x && x <= ship.layout[0].length) && (y === ship.y)) {
+//            console.log(`you hit the a ${ship.name} at ${x},${y}`);
+//        }
+//     });
+// }
+
+    // if(game.playerOne.gameBoard[y][x] === 1) {
+    //     // console.log('in bounds');
+    //     //look through the players ship list
+
+
