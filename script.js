@@ -47,22 +47,28 @@ function Game() {
     }    
     this.checkHit = function(initiator, playerToHit, x, y) {
         //return name of ship on given x, y gameboard coords
+        var hitShip;
+        let isHit = false;
         console.log(`X:${x} Y:${y}`);
-        console.log(`${playerToHit.name}`);
-        playerToHit.fleet.every(function (ship) {
+        playerToHit.fleet.forEach(
+            function (ship) {
+                if((x >= ship.x && x <= ship.layout[0].length) && (y === ship.y)) {
+                    isHit = true;
+                    hitShip = ship;
+                }
+            });
+
+        if(isHit) {
+            console.log(`${initiator.name} hit ${playerToHit.name}'s ${hitShip.name} at ${x},${y}`);
+            console.log(hitShip.layout[y - hitShip.y][x - hitShip.x]++);
+            console.log(hitShip.layout);
+            playerToHit.gameBoard[y][x]++;
+            initiator.guessBoard[y][x] = 'X';
             
-            // console.log(`${ship.name} ${ship.x}, ${ship.y}`);    
-            if((x >= ship.x && x <= ship.layout[0].length) && (y === ship.y)) {
-                console.log(`${initiator.name} hit ${playerToHit.name}'s ${ship.name} at ${x},${y}`);
-                console.log(ship.layout[y - ship.y][x - ship.x]++);
-                console.log(ship.layout);
-                playerToHit.gameBoard[y][x]++;
-                initiator.guessBoard[y][x] = 'X';
-            } else {
-                initiator.guessBoard[y][x] = '-';
-                console.log('miss');
-            }
-        });
+        } else {
+            initiator.guessBoard[y][x] = '-';
+            console.log('miss');           
+        }
     }
 }
 
