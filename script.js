@@ -1,3 +1,6 @@
+let canvas  = document.getElementById('canvas');
+let ctx = canvas.getContext('2d');
+
 let debugOne = document.getElementById('debugP1');
 let debugOneGuesses = document.getElementById('debugP1Guesses');
 
@@ -13,6 +16,10 @@ let p2GuessBtn = document.getElementById('p2GuessBtn');
 p1GuessBtn.onclick = p1Submit;
 p2GuessBtn.onclick = p2Submit;
 
+function BoardIndex(x, y) {
+    this.x = x;
+    this.y = y;
+}
 
 function Guess(x, y) {
     this.x = x;
@@ -250,33 +257,57 @@ draw();
 game.running = true;
 let count = 0
 
-// while(game.running) {
+
+function drawBoard(cellSize, rows, cols) {
     
-//     game.takeTurn(game.currentPlayer, new Guess(2,2));
-//     count++;
+    for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+            let x = i * cellSize;
+            let y = j * cellSize
 
-//     if(count === 10) {
-//         game.running = false;
-//     }
+            ctx.fillStyle = 'white';
+            if ((i + j) % 2 === 0) {
+                ctx.fillStyle = 'gray';
+            }
+
+            ctx.fillRect(x,y, cellSize, cellSize);    
+
+                        
+            ctx.fillStyle = "black";
+            ctx.font = "12px Arial";
+            ctx.fillText(`${i},${j}`, x + 15, y + 30);
+        }    
+    }
     
-// }
+}
 
-
-// function checkBoundingBox(x, y) {
-//     //return name of ship on given x, y gameboard coords
-//     console.log(`X:${x} Y:${y}`);
+function getMousePosition(canvas, event) {
+    let rect = canvas.getBoundingClientRect();
+    let x = event.clientX - rect.left;
+    let y = event.clientY - rect.top;
+    console.log("Coordinate x: " + x, 
+                "Coordinate y: " + y);
     
-//     game.playerOne.ships.forEach(function (ship) {
-//         // console.log(`${ship.name} ${ship.x}, ${ship.y}`);
-        
-//        if((x >= ship.x && x <= ship.layout[0].length) && (y === ship.y)) {
-//            console.log(`you hit the a ${ship.name} at ${x},${y}`);
-//        }
-//     });
-// }
 
-    // if(game.playerOne.gameBoard[y][x] === 1) {
-    //     // console.log('in bounds');
-    //     //look through the players ship list
+    x = Math.floor(x / 50);
+    y = Math.floor(y / 50);
+    
 
+    ctx.fillRect(x * 50, y * 50, 50, 50);
+}
+
+canvas.addEventListener("mousedown", function(e)
+{
+    getMousePosition(canvas, e);
+});
+
+drawBoard(50,10,10);
+
+
+function update() {
+    //check input {
+    // mouse move
+    // mouse click
+    // }
+}
 

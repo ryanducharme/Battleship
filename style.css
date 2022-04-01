@@ -1,6 +1,10 @@
+* {
+    box-sizing: border-box;
+}
+
 body {
     /* margin-left: 20%; */
-    background-color: gray;
+    background-color: rgb(231, 231, 231);
     max-width: 800px;
     margin: auto;
 }
@@ -9,6 +13,8 @@ canvas {
     display: flex;
     margin: 1rem;
     flex-wrap: wrap;
+    border: 1px solid black;
+    /* border-radius: 20px; */
     /* justify-content: center; */
 } 
 
