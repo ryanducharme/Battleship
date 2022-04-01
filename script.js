@@ -1,6 +1,19 @@
-let canvas  = document.getElementById('canvas');
-let ctx = canvas.getContext('2d');
+//#region Canvas Elements
+let playerOneGameBoard  = document.getElementById('playerOneGameBoard');
+let playerOneGameBoardCtx = playerOneGameBoard.getContext('2d');
 
+let playerOneGuessBoard  = document.getElementById('playerOneGuessBoard');
+let playerOneGuessCtx = playerOneGuessBoard.getContext('2d');
+
+let playerTwoGameBoard  = document.getElementById('playerTwoGameBoard');
+let playerTwoGameBoardCtx = playerTwoGameBoard.getContext('2d');
+
+let playerTwoGuessBoard  = document.getElementById('playerTwoGuessBoard');
+let playerTwoGuessCtx = playerTwoGuessBoard.getContext('2d');
+
+//#endregion
+
+//#region Debug elements
 let debugOne = document.getElementById('debugP1');
 let debugOneGuesses = document.getElementById('debugP1Guesses');
 
@@ -13,13 +26,11 @@ let p2GuessInput  = document.getElementById('p2GuessInput');
 let p1GuessBtn = document.getElementById('p1GuessBtn');
 let p2GuessBtn = document.getElementById('p2GuessBtn');
 
+//#endregion
+
 p1GuessBtn.onclick = p1Submit;
 p2GuessBtn.onclick = p2Submit;
-
-function BoardIndex(x, y) {
-    this.x = x;
-    this.y = y;
-}
+window.requestAnimationFrame(gameLoop);
 
 function Guess(x, y) {
     this.x = x;
@@ -28,8 +39,8 @@ function Guess(x, y) {
 }
 
 function Game() {
-    this.playerOne = new Player('p1');
-    this.playerTwo = new Player('p2');
+    this.playerOne = new Player('p1', playerOneGameBoard, playerOneGuessBoard);
+    this.playerTwo = new Player('p2', playerTwoGameBoard, playerOneGuessBoard);
     this.running = false;
     
     this.currentPlayer = this.playerOne;
@@ -79,10 +90,13 @@ function Game() {
     }
 }
 
-function Player(name) {
+function Player(name, gameBoardContext, guessBoardContext) {
     this.name = name;
     this.gameBoard = createBoard(10);
     this.guessBoard = createBoard(10);
+    this.gameBoardContext = gameBoardContext;
+    this.guessBoardContext = guessBoardContext;
+    this.context = '2d';
     this.hitCount = 0;
     this.fleet =
         [
@@ -203,14 +217,14 @@ function p1Submit() {
     //check hit and update
     let coords = p1GuessInput.value.split(',');
     game.checkHit(game.playerOne, game.playerTwo, parseInt(coords[0]), parseInt(coords[1]));
-    draw();
+    drawText();
 }
 
 function p2Submit() {
     //check hit and update
     let coords = p2GuessInput.value.split(',');
     game.checkHit(game.playerTwo, game.playerOne, parseInt(coords[0]), parseInt(coords[1]));
-    draw();
+    drawText();
 }
 
 let game = new Game();
@@ -228,21 +242,8 @@ game.playerTwo.placeShip(game.playerTwo.fleet[0], 2, 0);
 game.playerTwo.placeShip(game.playerTwo.fleet[1], 2, 4);
 game.playerTwo.placeShip(game.playerTwo.fleet[2], 2, 6);
 
-//player one takes a guess at player twos board
-// game.checkHit(game.playerOne, game.playerTwo, 2, 0);
-// game.checkHit(game.playerOne, game.playerTwo, 0, 0);
-// game.checkHit(game.playerOne, game.playerTwo, 3, 0);
-// game.checkHit(game.playerOne, game.playerTwo, 0, 0);
-// game.checkHit(game.playerOne, game.playerTwo, 3, 2);
-// game.checkHit(game.playerOne, game.playerTwo, 4, 4);
-// game.checkHit(game.playerOne, game.playerTwo, 4, 6);
-// game.checkHit(game.playerOne, game.playerTwo, 4, 7);
-
-//player two takes a guess at player ones board
-// game.checkHit(game.playerTwo.gameBoard, 3, 0);
-
 //draw
-function draw() {
+function drawText() {
     debugOne.value = game.playerOne.gameBoard.join('\n').replace(/0/g, ' ');
     debugOneGuesses.value = game.playerOne.guessBoard.join('\n').replace(/0/g, ' ');
 
@@ -251,35 +252,8 @@ function draw() {
     debugTwoGuesses.value = game.playerTwo.guessBoard.join('\n').replace(/0/g, ' ');
 }
 
-draw();
+drawText();
 
-//game loop
-game.running = true;
-let count = 0
-
-
-function drawBoard(cellSize, rows, cols) {
-    
-    for (let i = 0; i < rows; i++) {
-        for (let j = 0; j < cols; j++) {
-            let x = i * cellSize;
-            let y = j * cellSize
-
-            ctx.fillStyle = 'white';
-            if ((i + j) % 2 === 0) {
-                ctx.fillStyle = 'gray';
-            }
-
-            ctx.fillRect(x,y, cellSize, cellSize);    
-
-                        
-            ctx.fillStyle = "black";
-            ctx.font = "12px Arial";
-            ctx.fillText(`${i},${j}`, x + 15, y + 30);
-        }    
-    }
-    
-}
 
 function getMousePosition(canvas, event) {
     let rect = canvas.getBoundingClientRect();
@@ -291,17 +265,21 @@ function getMousePosition(canvas, event) {
 
     x = Math.floor(x / 50);
     y = Math.floor(y / 50);
-    
-
-    ctx.fillRect(x * 50, y * 50, 50, 50);
+    console.log(`${x}, ${y}`);
+    game.playerTwo.gameBoard[y][x] = 5;
+    // ctx.fillStyle = 'lime'
+    // ctx.fillRect(x * 50, y * 50, 50, 50);
 }
 
-canvas.addEventListener("mousedown", function(e)
+playerOneGameBoard.addEventListener("mousedown", function(e)
 {
-    getMousePosition(canvas, e);
+    getMousePosition(playerOneGameBoard, e);
 });
 
-drawBoard(50,10,10);
+playerOneGuessBoard.addEventListener("mousedown", function(e)
+{
+    getMousePosition(playerOneGuessCanvas, e);
+});
 
 
 function update() {
@@ -311,3 +289,67 @@ function update() {
     // }
 }
 
+function gameLoop(timeStamp){
+    draw();
+    
+    // Keep requesting new frames
+    window.requestAnimationFrame(gameLoop);
+}
+
+
+
+
+function drawBoard(player, cellSize, rows, cols) {
+    
+    for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+            let x = i * cellSize;
+            let y = j * cellSize
+
+            playerOneGameBoardCtx.fillStyle = 'white';
+            playerOneGuessCtx.fillStyle = 'white';
+            if ((i + j) % 2 === 0) {
+                playerOneGameBoardCtx.fillStyle = '#527bde';
+                playerOneGuessCtx.fillStyle = "gray";
+            }
+
+            playerOneGameBoardCtx.fillRect(x,y, cellSize, cellSize);    
+            playerOneGuessCtx.fillRect(x,y, cellSize, cellSize);    
+                        
+            playerOneGameBoardCtx.fillStyle = "black";
+            playerOneGameBoardCtx.font = "12px Arial";
+            playerOneGameBoardCtx.fillText(`${i},${j}`, x + 15, y + 30);
+
+
+            playerOneGuessCtx.fillStyle = "black";
+            playerOneGuessCtx.font = "12px Arial";
+            playerOneGuessCtx.fillText(`${i},${j}`, x + 15, y + 30);
+
+            if(game.playerOne.gameBoard[j][i] >= 1) {
+                playerOneGameBoardCtx.fillRect(x,y, cellSize, cellSize);
+                
+            }
+            if(game.playerOne.gameBoard[j][i] === 2) {
+                playerOneGameBoardCtx.beginPath();
+                playerOneGameBoardCtx.arc(x + 25, y + 25, 10, 0, 2 * Math.PI, false);
+                playerOneGameBoardCtx.fillStyle = 'red';
+                playerOneGameBoardCtx.fill();
+            }
+
+            if(game.playerOne.gameBoard[j][i] === 5) {
+                playerOneGameBoardCtx.fillStyle = "lime";
+                playerOneGameBoardCtx.fillRect(x,y, cellSize, cellSize);    
+            }
+            
+        }    
+    }
+    
+}
+
+function draw(){
+    drawBoard(playerOneGuessCtx, 50,10,10);
+    drawBoard(playerTwoGuessCtx, 50,10,10);
+    // let randomColor = Math.random() > 0.5? '#ff8080' : '#0099b0';
+    // ctx.fillStyle = randomColor;
+    // ctx.fillRect(100, 50, 200, 175);
+}
