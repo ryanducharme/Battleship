@@ -3,13 +3,13 @@ let playerOneGameBoard  = document.getElementById('playerOneGameBoard');
 let playerOneGameBoardCtx = playerOneGameBoard.getContext('2d');
 
 let playerOneGuessBoard  = document.getElementById('playerOneGuessBoard');
-let playerOneGuessCtx = playerOneGuessBoard.getContext('2d');
+let playerOneGuessBoardCtx = playerOneGuessBoard.getContext('2d');
 
 let playerTwoGameBoard  = document.getElementById('playerTwoGameBoard');
 let playerTwoGameBoardCtx = playerTwoGameBoard.getContext('2d');
 
 let playerTwoGuessBoard  = document.getElementById('playerTwoGuessBoard');
-let playerTwoGuessCtx = playerTwoGuessBoard.getContext('2d');
+let playerTwoGuessBoardCtx = playerTwoGuessBoard.getContext('2d');
 
 //#endregion
 
@@ -28,10 +28,6 @@ let p2GuessBtn = document.getElementById('p2GuessBtn');
 
 //#endregion
 
-p1GuessBtn.onclick = p1Submit;
-p2GuessBtn.onclick = p2Submit;
-window.requestAnimationFrame(gameLoop);
-
 function Guess(x, y) {
     this.x = x;
     this.y = y;
@@ -39,8 +35,8 @@ function Guess(x, y) {
 }
 
 function Game() {
-    this.playerOne = new Player('p1', playerOneGameBoard, playerOneGuessBoard);
-    this.playerTwo = new Player('p2', playerTwoGameBoard, playerOneGuessBoard);
+    this.playerOne = new Player('p1', playerOneGameBoardCtx, playerOneGuessBoardCtx);
+    this.playerTwo = new Player('p2', playerTwoGameBoardCtx, playerTwoGuessBoardCtx);
     this.running = false;
     
     this.currentPlayer = this.playerOne;
@@ -96,7 +92,7 @@ function Player(name, gameBoardContext, guessBoardContext) {
     this.guessBoard = createBoard(10);
     this.gameBoardContext = gameBoardContext;
     this.guessBoardContext = guessBoardContext;
-    this.context = '2d';
+    // this.context = '2d';
     this.hitCount = 0;
     this.fleet =
         [
@@ -227,21 +223,6 @@ function p2Submit() {
     drawText();
 }
 
-let game = new Game();
-
-
-//add player one ships
-game.playerOne.placeShip(game.playerOne.fleet[0], 1, 0);
-game.playerOne.placeShip(game.playerOne.fleet[1], 4, 2);
-game.playerOne.placeShip(game.playerOne.fleet[2], 6, 3);
-game.playerOne.placeShip(game.playerOne.fleet[3], 2, 7);
-game.playerOne.placeShip(game.playerOne.fleet[4], 8, 9);
-
-//add player two ships
-game.playerTwo.placeShip(game.playerTwo.fleet[0], 2, 0);
-game.playerTwo.placeShip(game.playerTwo.fleet[1], 2, 4);
-game.playerTwo.placeShip(game.playerTwo.fleet[2], 2, 6);
-
 //draw
 function drawText() {
     debugOne.value = game.playerOne.gameBoard.join('\n').replace(/0/g, ' ');
@@ -251,8 +232,6 @@ function drawText() {
     debugTwo.value = game.playerTwo.gameBoard.join('\n').replace(/0/g, ' ');
     debugTwoGuesses.value = game.playerTwo.guessBoard.join('\n').replace(/0/g, ' ');
 }
-
-drawText();
 
 
 function getMousePosition(canvas, event) {
@@ -271,6 +250,80 @@ function getMousePosition(canvas, event) {
     // ctx.fillRect(x * 50, y * 50, 50, 50);
 }
 
+
+function update() {
+    //check input {
+    // mouse move
+    // mouse click
+    // }
+}
+let frameCount = 0;
+function gameLoop(timeStamp){
+    draw();
+    // game.playerOne.gameBoardContext.clearRect(0,0, 500,500)
+    // Keep requesting new frames
+    frameCount++;
+    console.log(frameCount);
+    window.requestAnimationFrame(gameLoop);
+}
+
+function drawBoard(player, cellSize, rows, cols) {
+    // player.gameBoardContext.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+            let x = i * cellSize;
+            let y = j * cellSize
+
+            player.gameBoardContext.fillStyle = 'white';
+            player.guessBoardContext.fillStyle = 'white';
+            
+            if ((i + j) % 2 === 0) {
+               
+                player.gameBoardContext.fillStyle = '#527bde';
+                player.guessBoardContext.fillStyle = 'gray';
+            }
+
+            player.gameBoardContext.fillRect(x,y, cellSize, cellSize);    
+            player.guessBoardContext.fillRect(x,y, cellSize, cellSize);    
+                        
+            player.gameBoardContext.fillStyle = "black";
+            player.gameBoardContext.font = "12px Arial";
+            player.gameBoardContext.fillText(`${i},${j}`, x + 15, y + 30);
+
+
+            player.guessBoardContext.fillStyle = "black";
+            player.guessBoardContext.font = "12px Arial";
+            player.guessBoardContext.fillText(`${i},${j}`, x + 15, y + 30);
+
+            if(player.gameBoard[j][i] >= 1) {
+                player.gameBoardContext.fillRect(x,y, cellSize, cellSize);
+                
+            }
+            if(player.gameBoard[j][i] === 2) {
+                player.gameBoardContext.beginPath();
+                player.gameBoardContext.arc(x + 25, y + 25, 10, 0, 2 * Math.PI, false);
+                player.gameBoardContext.fillStyle = 'red';
+                player.gameBoardContext.fill();
+            }
+
+            if(player.gameBoard[j][i] === 5) {
+                player.gameBoardContext.fillStyle = "lime";
+                player.gameBoardContext.fillRect(x,y, cellSize, cellSize);    
+            }
+            
+        }    
+    }
+    
+}
+
+function draw(){
+    // game.playerOne.gameBoardContext.
+    drawBoard(game.playerOne, 50,10,10);
+    drawBoard(game.playerTwo, 50,10,10);
+}
+
+
 playerOneGameBoard.addEventListener("mousedown", function(e)
 {
     getMousePosition(playerOneGameBoard, e);
@@ -282,74 +335,29 @@ playerOneGuessBoard.addEventListener("mousedown", function(e)
 });
 
 
-function update() {
-    //check input {
-    // mouse move
-    // mouse click
-    // }
-}
 
-function gameLoop(timeStamp){
-    draw();
-    
-    // Keep requesting new frames
-    window.requestAnimationFrame(gameLoop);
-}
+p1GuessBtn.onclick = p1Submit;
+p2GuessBtn.onclick = p2Submit;
+window.requestAnimationFrame(gameLoop);
 
 
+let game = new Game();
 
 
-function drawBoard(player, cellSize, rows, cols) {
-    
-    for (let i = 0; i < rows; i++) {
-        for (let j = 0; j < cols; j++) {
-            let x = i * cellSize;
-            let y = j * cellSize
+//add player one ships
+game.playerOne.placeShip(game.playerOne.fleet[0], 1, 0);
+game.playerOne.placeShip(game.playerOne.fleet[1], 4, 2);
+game.playerOne.placeShip(game.playerOne.fleet[2], 6, 3);
+game.playerOne.placeShip(game.playerOne.fleet[3], 2, 7);
+game.playerOne.placeShip(game.playerOne.fleet[4], 8, 9);
 
-            playerOneGameBoardCtx.fillStyle = 'white';
-            playerOneGuessCtx.fillStyle = 'white';
-            if ((i + j) % 2 === 0) {
-                playerOneGameBoardCtx.fillStyle = '#527bde';
-                playerOneGuessCtx.fillStyle = "gray";
-            }
-
-            playerOneGameBoardCtx.fillRect(x,y, cellSize, cellSize);    
-            playerOneGuessCtx.fillRect(x,y, cellSize, cellSize);    
-                        
-            playerOneGameBoardCtx.fillStyle = "black";
-            playerOneGameBoardCtx.font = "12px Arial";
-            playerOneGameBoardCtx.fillText(`${i},${j}`, x + 15, y + 30);
+//add player two ships
+game.playerTwo.placeShip(game.playerTwo.fleet[0], 2, 0);
+game.playerTwo.placeShip(game.playerTwo.fleet[1], 2, 4);
+game.playerTwo.placeShip(game.playerTwo.fleet[2], 2, 6);
 
 
-            playerOneGuessCtx.fillStyle = "black";
-            playerOneGuessCtx.font = "12px Arial";
-            playerOneGuessCtx.fillText(`${i},${j}`, x + 15, y + 30);
+drawText();
 
-            if(game.playerOne.gameBoard[j][i] >= 1) {
-                playerOneGameBoardCtx.fillRect(x,y, cellSize, cellSize);
-                
-            }
-            if(game.playerOne.gameBoard[j][i] === 2) {
-                playerOneGameBoardCtx.beginPath();
-                playerOneGameBoardCtx.arc(x + 25, y + 25, 10, 0, 2 * Math.PI, false);
-                playerOneGameBoardCtx.fillStyle = 'red';
-                playerOneGameBoardCtx.fill();
-            }
 
-            if(game.playerOne.gameBoard[j][i] === 5) {
-                playerOneGameBoardCtx.fillStyle = "lime";
-                playerOneGameBoardCtx.fillRect(x,y, cellSize, cellSize);    
-            }
-            
-        }    
-    }
-    
-}
 
-function draw(){
-    drawBoard(playerOneGuessCtx, 50,10,10);
-    drawBoard(playerTwoGuessCtx, 50,10,10);
-    // let randomColor = Math.random() > 0.5? '#ff8080' : '#0099b0';
-    // ctx.fillStyle = randomColor;
-    // ctx.fillRect(100, 50, 200, 175);
-}
