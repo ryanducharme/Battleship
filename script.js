@@ -71,18 +71,20 @@ function Game() {
                     ship.layout[0][x - ship.x + ship.layout[0].length - 1] = 2;
                     // console.log(ship.layout[y][x - ship.layout[0].length]);
                     // playerToHit.gameBoard[y][x] = 2;
+                    
                     isHit = true;
                     hitShip = ship;
                 }
             });
 
         //CHANGE THIS T NOT CHANGE THE BOARD, MAKE FUNCTION TO REWRITE THE BOARD BY READING ALL BOAT ARRAYS
-        if (isHit) {
-            console.log(`${initiator.name} hit ${playerToHit.name}'s ${hitShip.name} at ${x},${y}`);
-            console.log(hitShip.layout[y - hitShip.y][x - hitShip.x]++);
-            console.log(hitShip.layout);
+        if (isHit && playerToHit.gameBoard[y][x] == 1) {
+            // console.log(`${initiator.name} hit ${playerToHit.name}'s ${hitShip.name} at ${x},${y}`);
+            // console.log(hitShip.layout[y - hitShip.y][x - hitShip.x]);
+            // console.log(hitShip.layout);
             playerToHit.gameBoard[y][x] = 2;
             initiator.guessBoard[y][x] = 'X';
+            console.log('hit');
 
         } else {
             initiator.guessBoard[y][x] = '-';
@@ -243,13 +245,13 @@ function getMousePosition(canvas, event) {
     let rect = canvas.getBoundingClientRect();
     let x = event.clientX - rect.left;
     let y = event.clientY - rect.top;
-    console.log("Coordinate x: " + x,
-        "Coordinate y: " + y);
+    // console.log("Coordinate x: " + x,
+        // "Coordinate y: " + y);
 
 
     x = Math.floor(x / 50);
     y = Math.floor(y / 50);
-    console.log(`${x}, ${y}`);
+    // console.log(`${x}, ${y}`);
 
     let position = [x, y];
     return position;
@@ -347,11 +349,14 @@ function draw() {
 
 playerOneGameBoard.addEventListener("mousedown", function (e) {
     getMousePosition(playerOneGameBoard, e);
+    // game.checkHit(game.playerTwo, game.playerTwo, position[0], position[1]);
 });
 
 playerOneGuessBoard.addEventListener("mousedown", function (e) {
     let position = getMousePosition(playerOneGuessBoard, e);
+    console.log(position);
     game.checkHit(game.playerOne, game.playerTwo, position[0], position[1]);
+    drawText();
 });
 
 
