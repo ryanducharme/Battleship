@@ -107,27 +107,22 @@ function Player(name, gameBoardContext, guessBoardContext) {
     this.fleet =
         [
             new Ship(
-                'Carrier',
-                [[1, 1, 1, 1, 1]]),
+                'Carrier', 5),
             new Ship(
-                'Battleship',
-                [[1, 1, 1, 1]]),
+                'Battleship', 4),
             new Ship(
-                'Destroyer',
-                [[1, 1, 1]]),
+                'Destroyer', 3),
             new Ship(
-                'Submarine',
-                [[1, 1, 1]]),
+                'Submarine', 3),
             new Ship(
-                'Patrol',
-                [[1, 1]])
+                'Patrol', 2)
         ];
        
     this.turnCount = 0;
     this.placeShip = function (ship, chosenX, chosenY) {
         let pieceConflict = false;
         
-        let shipLayout = ship.layout;
+        
         //check valid placement
         //check if the desired coords are in bounds
 
@@ -142,22 +137,20 @@ function Player(name, gameBoardContext, guessBoardContext) {
         }
 
         if ((chosenX < 10 && chosenY < 10)) {
-            if (ship.calcShipBaseAxis() === 'horizontal') {
-                for (let shipX = 0; shipX < shipLayout[0].length; shipX++) {
+            if (ship.horizontal === true) {
+                for (let shipX = 0; shipX < ship.length; shipX++) {
                     //check to make sure the piece will fit in desired location
-                    if (chosenX + shipLayout[0].length > 10 || chosenY + shipLayout.length > 10) {
+                    if (chosenX + ship.layout[0].length > 10 || chosenY + ship.layout.length > 10) {
                         //check the piece isnt conflicting with another ship
-                        
-                        
                         pieceConflict = true;
                     } else if (this.gameBoard[chosenY + 0][chosenX + shipX] === 1) {
                         pieceConflict = true;
                     }
                 }
-            } else if (ship.calcShipBaseAxis() === 'vertical') {
-                for (let shipX = 0; shipX < shipLayout[0].length; shipX++) {
-                    for (let shipY = 0; shipY < shipLayout.length; shipY++) {
-                        if (chosenX + shipLayout[0].length > 10 || chosenY + shipLayout.length > 10) {
+            } else if (ship.vertical === true) {
+                for (let shipX = 0; shipX < ship.length; shipX++) {
+                    for (let shipY = 0; shipY < ship.layout.length; shipY++) {
+                        if (chosenX + ship.layout[0].length > 10 || chosenY + ship.layout.length > 10) {
                             console.log(`The piece will be out of bounds if placed at X:${chosenX} Y:${chosenY}`);
                             pieceConflict = true;
                         } else if (this.gameBoard[chosenY + shipY][chosenX + 0] === 1) {
@@ -165,8 +158,6 @@ function Player(name, gameBoardContext, guessBoardContext) {
                         }
                     }
                 }
-            } else if (ship.calcShipBaseAxis() === 'combo') {
-                //todo
             }
         } else {
             pieceConflict = true;
@@ -174,8 +165,8 @@ function Player(name, gameBoardContext, guessBoardContext) {
 
 
         if (pieceConflict == false) {
-            for (let shipX = 0; shipX < shipLayout[0].length; shipX++) {
-                for (let shipY = 0; shipY < shipLayout.length; shipY++) {
+            for (let shipX = 0; shipX < ship.layout[0].length; shipX++) {
+                for (let shipY = 0; shipY < ship.layout.length; shipY++) {
                     ship.x = chosenX;
                     ship.y = chosenY;
                     if (ship.canPlace === true) {
@@ -191,60 +182,53 @@ function Player(name, gameBoardContext, guessBoardContext) {
         }
     };
 }
-function Ship(name, layout) {
+function Ship(name, length) {
     this.name = name;
-    this.layout = layout;
-    this.health = layout[0].length;
+    this.layout = [[]];
+    this.length = length;
     this.x = undefined;
     this.y = undefined;
     this.canPlace = false;
     this.isPlaced = false;
+    this.vertical = false;
+    this.horizontal = true;
     this.calcShipBaseAxis = function () {
-        let horizontal = false;
-        let vertical = false;
-        let combo = false;
-        
-        // console.log(this.layout.length);
-        if (this.layout.length === 1) {
-            horizontal = true;
-        }
-        // console.log(this.layout[0].length);
-        if (this.layout[0].length === 1) {
-            vertical = true;
-        }
-        if (this.layout.length > 1 && this.layout[0].length > 1) {
-            combo = true;
-            return 'combo';
-        } else if (horizontal) {
+      
+        if (this.horizontal) {
             return 'horizontal';
-        } else if (vertical) {
+        } else if (this.vertical) {
             return 'vertical';
         }
     }
 
-    this.horizontalLayout = function(shipLength) {
+    this.horizontalLayout = function() {
         let newLayout = [];
         let newLayoutX = [];
-        for (let i = 0; i < shipLength; i++) {
+        for (let i = 0; i < this.length; i++) {
             let newItem = 1;
             newLayoutX.push(newItem);
         }
-        console.log(newLayout.push(newLayoutX));
-        return newLayout.push(newLayoutX);
+        newLayout.push(newLayoutX);
+        // console.log(newLayout);
+        this.horizontal = true;
+        this.vertical = false;
+        return this.layout = newLayout;
         
     }
     this.verticalLayout = function() {
-        let length = this.layout[0].length;
+        
         let newLayout = [];
-        for (let i = 0; i < length; i++) {
+        for (let i = 0; i < this.length; i++) {
             let newItem = [1];
             newLayout.push(newItem);
             
         }
+        this.horizontal = false;
+        this.vertical = true;
         // console.log(newLayout);
         return this.layout = newLayout;
     }
-
+    this.layout = this.horizontalLayout();
 }
 function createBoard(boardSize) {
     let board = [];
@@ -413,9 +397,16 @@ playerOneGameBoard.addEventListener("mousemove", function (e) {
 
 window.addEventListener('keydown', function(e) {
     
-    if(e.key == 'r') {
-        console.log(game.playerOne.fleet[0].verticalLayout());
+    if(GameState.shipPlacement) {
+        if(e.key == 'r') {
+            if(game.playerOne.fleet[game.playerOne.currentShipIndex].horizontal === true) {
+                game.playerOne.fleet[game.playerOne.currentShipIndex].verticalLayout();    
+            } else {
+                game.playerOne.fleet[game.playerOne.currentShipIndex].horizontalLayout()
+            }
+        }
     }
+    
 });
 
 p1GuessBtn.onclick = p1Submit;
