@@ -35,13 +35,12 @@ function Guess(x, y) {
     this.y = y;
     this.hit = false;
 }
-
 let GameState = {
     shipPlacement: true,
+    running: false,
     p1Turn: false,
     p2Turn: false
 }
-
 function Game() {
     this.playerOne = new Player('p1', playerOneGameBoardCtx, playerOneGuessBoardCtx);
     this.playerTwo = new Player('p2', playerTwoGameBoardCtx, playerTwoGuessBoardCtx);
@@ -94,7 +93,6 @@ function Game() {
         }
     }
 }
-
 function Player(name, gameBoardContext, guessBoardContext) {
     this.name = name;
     this.gameBoard = createBoard(10);
@@ -124,6 +122,7 @@ function Player(name, gameBoardContext, guessBoardContext) {
                 'Patrol',
                 [[1, 1]])
         ];
+       
     this.turnCount = 0;
     this.placeShip = function (ship, chosenX, chosenY) {
         let pieceConflict = false;
@@ -155,7 +154,7 @@ function Player(name, gameBoardContext, guessBoardContext) {
                         pieceConflict = true;
                     }
                 }
-            } else if (calcShipBaseAxis(ship) === 'vertical') {
+            } else if (ship.calcShipBaseAxis() === 'vertical') {
                 for (let shipX = 0; shipX < shipLayout[0].length; shipX++) {
                     for (let shipY = 0; shipY < shipLayout.length; shipY++) {
                         if (chosenX + shipLayout[0].length > 10 || chosenY + shipLayout.length > 10) {
@@ -166,7 +165,7 @@ function Player(name, gameBoardContext, guessBoardContext) {
                         }
                     }
                 }
-            } else if (calcShipBaseAxis(ship) === 'combo') {
+            } else if (ship.calcShipBaseAxis() === 'combo') {
                 //todo
             }
         } else {
@@ -192,7 +191,6 @@ function Player(name, gameBoardContext, guessBoardContext) {
         }
     };
 }
-
 function Ship(name, layout) {
     this.name = name;
     this.layout = layout;
@@ -205,10 +203,12 @@ function Ship(name, layout) {
         let horizontal = false;
         let vertical = false;
         let combo = false;
-
+        
+        // console.log(this.layout.length);
         if (this.layout.length === 1) {
             horizontal = true;
         }
+        // console.log(this.layout[0].length);
         if (this.layout[0].length === 1) {
             vertical = true;
         }
@@ -220,6 +220,29 @@ function Ship(name, layout) {
         } else if (vertical) {
             return 'vertical';
         }
+    }
+
+    this.horizontalLayout = function(shipLength) {
+        let newLayout = [];
+        let newLayoutX = [];
+        for (let i = 0; i < shipLength; i++) {
+            let newItem = 1;
+            newLayoutX.push(newItem);
+        }
+        console.log(newLayout.push(newLayoutX));
+        return newLayout.push(newLayoutX);
+        
+    }
+    this.verticalLayout = function() {
+        let length = this.layout[0].length;
+        let newLayout = [];
+        for (let i = 0; i < length; i++) {
+            let newItem = [1];
+            newLayout.push(newItem);
+            
+        }
+        // console.log(newLayout);
+        return this.layout = newLayout;
     }
 
 }
@@ -335,8 +358,6 @@ function drawBoard(player, cellSize, rows, cols) {
     }
 
 }
-
-
 function update() {
     if (GameState.shipPlacement === true) {
         if(game.playerOne.currentShipIndex <= 4) {
@@ -344,15 +365,21 @@ function update() {
             if(game.playerOne.fleet[game.playerOne.currentShipIndex].isPlaced === true ) {
                 game.playerOne.currentShipIndex++;
             }
+        } else {
+            GameState.shipPlacement = false;
+            GameState.running = true;
+            GameState.p1Turn = true;
         }
     }
+    if(GameState.p1Turn) {
+        console.log('player 1 turn');
+    }
 }
-
 function draw() {
     drawBoard(game.playerOne, 50, 10, 10);
     drawBoard(game.playerTwo, 50, 10, 10);
+    drawText();
 }
-
 function gameLoop(timeStamp) {
     update();
     draw();
@@ -362,23 +389,33 @@ function gameLoop(timeStamp) {
 }
 
 playerOneGameBoard.addEventListener("mousedown", function (e) {
-    getMousePosition(playerOneGameBoard, e);
-    game.playerOne.fleet[game.playerOne.currentShipIndex].canPlace = true;
-    
+    if(GameState.shipPlacement) {
+        getMousePosition(playerOneGameBoard, e);
+        game.playerOne.fleet[game.playerOne.currentShipIndex].canPlace = true;
+    }
 });
 
 playerOneGuessBoard.addEventListener("mousedown", function (e) {
-    let position = getMousePosition(playerOneGuessBoard, e);
-    console.log(position);
-    game.checkHit(game.playerOne, game.playerTwo, position[0], position[1]);
-    drawText();
+    if(GameState.running) {
+        let position = getMousePosition(playerOneGuessBoard, e);
+        console.log(position);
+        game.checkHit(game.playerOne, game.playerTwo, position[0], position[1]);
+        // drawText();
+    }
 });
 
 playerOneGameBoard.addEventListener("mousemove", function (e) {
     let position = getMousePosition(playerOneGameBoard, e);
     game.playerOne.MousePos = position;
     mouseCoordElem.textContent = position;
-    drawText();
+    // drawText();
+});
+
+window.addEventListener('keydown', function(e) {
+    
+    if(e.key == 'r') {
+        console.log(game.playerOne.fleet[0].verticalLayout());
+    }
 });
 
 p1GuessBtn.onclick = p1Submit;
@@ -386,16 +423,3 @@ p2GuessBtn.onclick = p2Submit;
 window.requestAnimationFrame(gameLoop);
 
 let game = new Game();
-
-// //add player one ships
-// game.playerOne.placeShip(game.playerOne.fleet[0], 0, 0);
-// game.playerOne.placeShip(game.playerOne.fleet[1], 4, 2);
-// game.playerOne.placeShip(game.playerOne.fleet[2], 6, 3);
-// game.playerOne.placeShip(game.playerOne.fleet[3], 2, 7);
-// game.playerOne.placeShip(game.playerOne.fleet[4], 8, 9);
-
-// //add player two ships
-game.playerTwo.placeShip(game.playerTwo.fleet[0], 0, 0);
-game.playerTwo.placeShip(game.playerTwo.fleet[1], 6, 4);
-game.playerTwo.placeShip(game.playerTwo.fleet[2], 2, 6);
-drawText();
