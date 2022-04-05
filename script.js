@@ -16,17 +16,7 @@ let mouseCoordElem  = document.getElementById('mouse');
 //#endregion
 
 //#region Debug elements
-let debugOne = document.getElementById('debugP1');
-let debugOneGuesses = document.getElementById('debugP1Guesses');
 
-let debugTwo = document.getElementById('debugP2');
-let debugTwoGuesses = document.getElementById('debugP2Guesses');
-
-let p1GuessInput = document.getElementById('p1GuessInput');
-let p2GuessInput = document.getElementById('p2GuessInput');
-
-let p1GuessBtn = document.getElementById('p1GuessBtn');
-let p2GuessBtn = document.getElementById('p2GuessBtn');
 
 //#endregion
 
@@ -35,17 +25,18 @@ function Guess(x, y) {
     this.y = y;
     this.hit = false;
 }
-let GameState = {
-    shipPlacement: true,
-    running: false,
-    p1Turn: false,
-    p2Turn: false
-}
+
 function Game() {
+    this.winner = undefined;
     this.playerOne = new Player('p1', playerOneGameBoardCtx, playerOneGuessBoardCtx);
     this.playerTwo = new Player('p2', playerTwoGameBoardCtx, playerTwoGuessBoardCtx);
-    this.running = false;
-
+    this.state = {
+        shipPlacement: true,
+        running: false,
+        p1Turn: false,
+        p2Turn: false,
+        win: false
+    }
     this.currentPlayer = this.playerOne;
     this.turnCount = 1;
     this.checkWinCondition = function () {
@@ -86,6 +77,8 @@ function Game() {
             playerToHit.gameBoard[y][x] = 2;
             initiator.guessBoard[y][x] = 'X';
             console.log('hit');
+            playerToHit.health--;
+            
 
         } else {
             initiator.guessBoard[y][x] = '-';
@@ -102,6 +95,7 @@ function Player(name, gameBoardContext, guessBoardContext) {
     this.guessBoardContext = guessBoardContext;
     // this.context = '2d';
     this.hitCount = 0;
+    this.health = 17;
     this.MousePos = [];
     this.currentShipIndex = 0;
     this.fleet =
@@ -121,8 +115,6 @@ function Player(name, gameBoardContext, guessBoardContext) {
     this.turnCount = 0;
     this.placeShip = function (ship, chosenX, chosenY) {
         let pieceConflict = false;
-        
-        
         //check valid placement
         //check if the desired coords are in bounds
 
@@ -162,7 +154,6 @@ function Player(name, gameBoardContext, guessBoardContext) {
         } else {
             pieceConflict = true;
         }
-
 
         if (pieceConflict == false) {
             for (let shipX = 0; shipX < ship.layout[0].length; shipX++) {
@@ -241,27 +232,6 @@ function createBoard(boardSize) {
     }
     return board;
 }
-function p1Submit() {
-    //check hit and update
-    let coords = p1GuessInput.value.split(',');
-    game.checkHit(game.playerOne, game.playerTwo, parseInt(coords[0]), parseInt(coords[1]));
-    drawText();
-}
-function p2Submit() {
-    //check hit and update
-    let coords = p2GuessInput.value.split(',');
-    game.checkHit(game.playerTwo, game.playerOne, parseInt(coords[0]), parseInt(coords[1]));
-    drawText();
-}
-//draw
-function drawText() {
-    debugOne.value = game.playerOne.gameBoard.join('\n').replace(/0/g, ' ');
-    debugOneGuesses.value = game.playerOne.guessBoard.join('\n').replace(/0/g, ' ');
-
-
-    debugTwo.value = game.playerTwo.gameBoard.join('\n').replace(/0/g, ' ');
-    debugTwoGuesses.value = game.playerTwo.guessBoard.join('\n').replace(/0/g, ' ');
-}
 function getMousePosition(canvas, event) {
     let rect = canvas.getBoundingClientRect();
     let x = event.clientX - rect.left;
@@ -275,94 +245,117 @@ function getMousePosition(canvas, event) {
     
 }
 function drawBoard(player, cellSize, rows, cols) {
-    // player.gameBoardContext.clearRect(0, 0, canvas.width, canvas.height);
-
-    for (let i = 0; i < rows; i++) {
-        for (let j = 0; j < cols; j++) {
-            let x = i * cellSize;
-            let y = j * cellSize
-
-            player.gameBoardContext.fillStyle = 'blue';
-            player.guessBoardContext.fillStyle = 'lightgray';
-
-            if ((i + j) % 2 === 0) {
-
-                player.gameBoardContext.fillStyle = '#527bde';
-                player.guessBoardContext.fillStyle = 'gray';
-            }
-
-            player.gameBoardContext.fillRect(x, y, cellSize, cellSize);
-            player.guessBoardContext.fillRect(x, y, cellSize, cellSize);
-
-
-
-            player.gameBoardContext.fillStyle = "black";
-            if (player.gameBoard[j][i] == -1) {
-                player.gameBoardContext.fillStyle = "lime";
+    
+    if (!game.state.win) {
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+                let x = i * cellSize;
+                let y = j * cellSize
+    
+                player.gameBoardContext.fillStyle = 'blue';
+                player.guessBoardContext.fillStyle = 'lightgray';
+    
+                if ((i + j) % 2 === 0) {
+    
+                    player.gameBoardContext.fillStyle = '#527bde';
+                    player.guessBoardContext.fillStyle = 'gray';
+                }
+    
                 player.gameBoardContext.fillRect(x, y, cellSize, cellSize);
-
+                player.guessBoardContext.fillRect(x, y, cellSize, cellSize);
+    
+                player.gameBoardContext.fillStyle = "black";
+                if (player.gameBoard[j][i] == -1) {
+                    player.gameBoardContext.fillStyle = "lime";
+                    player.gameBoardContext.fillRect(x, y, cellSize, cellSize);
+    
+                }
+                if (player.gameBoard[j][i] >= 1) {
+                    player.guessBoardContext.fillStyle = "black";
+                    player.gameBoardContext.fillRect(x, y, cellSize, cellSize);
+    
+                }
+                if (player.guessBoard[j][i] == '-') {
+                    player.guessBoardContext.beginPath();
+                    player.guessBoardContext.arc(x + 25, y + 25, 10, 0, 2 * Math.PI, false);
+                    player.guessBoardContext.fillStyle = 'black';
+                    player.guessBoardContext.fill();
+                }
+                if (player.guessBoard[j][i] == 'X') {
+                    player.guessBoardContext.beginPath();
+                    player.guessBoardContext.arc(x + 25, y + 25, 10, 0, 2 * Math.PI, false);
+                    player.guessBoardContext.fillStyle = 'red';
+                    player.guessBoardContext.fill();
+                }
+                if (player.gameBoard[j][i] === 2) {
+                    player.gameBoardContext.beginPath();
+                    player.gameBoardContext.arc(x + 25, y + 25, 10, 0, 2 * Math.PI, false);
+                    player.gameBoardContext.fillStyle = 'red';
+                    player.gameBoardContext.fill();
+                }
+    
+                if (player.gameBoard[j][i] === 5) {
+                    player.gameBoardContext.fillStyle = "lime";
+                    player.gameBoardContext.fillRect(x, y, cellSize, cellSize);
+                }
+    
+                player.gameBoardContext.fillStyle = "white";
+                player.gameBoardContext.font = "16px Arial";
+                player.gameBoardContext.fillText(`${i},${j}`, x + 15, y + 30);
+    
+                player.guessBoardContext.fillStyle = "white";
+                player.guessBoardContext.font = "16px Arial";
+                player.guessBoardContext.fillText(`${i},${j}`, x + 15, y + 30);
             }
-            if (player.gameBoard[j][i] >= 1) {
-                player.guessBoardContext.fillStyle = "black";
-                player.gameBoardContext.fillRect(x, y, cellSize, cellSize);
-
-            }
-            if (player.guessBoard[j][i] == '-') {
-                player.guessBoardContext.beginPath();
-                player.guessBoardContext.arc(x + 25, y + 25, 10, 0, 2 * Math.PI, false);
-                player.guessBoardContext.fillStyle = 'black';
-                player.guessBoardContext.fill();
-            }
-            if (player.guessBoard[j][i] == 'X') {
-                player.guessBoardContext.beginPath();
-                player.guessBoardContext.arc(x + 25, y + 25, 10, 0, 2 * Math.PI, false);
-                player.guessBoardContext.fillStyle = 'red';
-                player.guessBoardContext.fill();
-            }
-            if (player.gameBoard[j][i] === 2) {
-                player.gameBoardContext.beginPath();
-                player.gameBoardContext.arc(x + 25, y + 25, 10, 0, 2 * Math.PI, false);
-                player.gameBoardContext.fillStyle = 'red';
-                player.gameBoardContext.fill();
-            }
-
-            if (player.gameBoard[j][i] === 5) {
-                player.gameBoardContext.fillStyle = "lime";
-                player.gameBoardContext.fillRect(x, y, cellSize, cellSize);
-            }
-
-            player.gameBoardContext.fillStyle = "white";
-            player.gameBoardContext.font = "16px Arial";
-            player.gameBoardContext.fillText(`${i},${j}`, x + 15, y + 30);
-
-            player.guessBoardContext.fillStyle = "white";
-            player.guessBoardContext.font = "16px Arial";
-            player.guessBoardContext.fillText(`${i},${j}`, x + 15, y + 30);
         }
+    } else {
+        player.gameBoardContext.fillStyle = 'white';
+        player.gameBoardContext.fillRect(0,0, 500, 500);
+        
+        player.gameBoardContext.fillStyle = 'black';
+        player.gameBoardContext.font = '50px serif';
+        player.gameBoardContext.fillText(`${game.winner.name} won!`, 130, 250);
+        console.log(game.winner);
+        // player.gameBoardContext.fillText(`${game.winner.name} won!`, 250,250);
     }
+    
 
 }
 function update() {
-    if (GameState.shipPlacement === true) {
+    if (game.state.shipPlacement === true) {
         if(game.playerOne.currentShipIndex <= 4) {
             game.playerOne.placeShip(game.playerOne.fleet[game.playerOne.currentShipIndex], game.playerOne.MousePos[0], game.playerOne.MousePos[1]);
             if(game.playerOne.fleet[game.playerOne.currentShipIndex].isPlaced === true ) {
                 game.playerOne.currentShipIndex++;
             }
         } else {
-            GameState.shipPlacement = false;
-            GameState.running = true;
-            GameState.p1Turn = true;
+            game.state.shipPlacement = false;
+            game.state.running = true;
+            game.state.p1Turn = true;
         }
     }
-    if(GameState.p1Turn) {
-        console.log('player 1 turn');
+    if(game.state.running) {
+        if(game.playerOne.health === 0) {
+                game.winner = game.playerTwo;
+                game.state.win = true;
+        }   
+
+        if(game.playerTwo.health === 0) {
+            game.winner = game.playerOne;
+            game.state.win = true;
+        }   
     }
+
+    if(game.state.win === true) {
+        console.log('winner');
+    }
+    // game.state.win = true;
 }
 function draw() {
     drawBoard(game.playerOne, 50, 10, 10);
     drawBoard(game.playerTwo, 50, 10, 10);
-    drawText();
+    
+    // drawText();
 }
 function gameLoop(timeStamp) {
     update();
@@ -373,14 +366,14 @@ function gameLoop(timeStamp) {
 }
 
 playerOneGameBoard.addEventListener("mousedown", function (e) {
-    if(GameState.shipPlacement) {
+    if(game.state.shipPlacement) {
         getMousePosition(playerOneGameBoard, e);
         game.playerOne.fleet[game.playerOne.currentShipIndex].canPlace = true;
     }
 });
 
 playerOneGuessBoard.addEventListener("mousedown", function (e) {
-    if(GameState.running) {
+    if(game.state.running) {
         let position = getMousePosition(playerOneGuessBoard, e);
         console.log(position);
         game.checkHit(game.playerOne, game.playerTwo, position[0], position[1]);
@@ -397,7 +390,7 @@ playerOneGameBoard.addEventListener("mousemove", function (e) {
 
 window.addEventListener('keydown', function(e) {
     
-    if(GameState.shipPlacement) {
+    if(game.state.shipPlacement) {
         if(e.key == 'r') {
             if(game.playerOne.fleet[game.playerOne.currentShipIndex].horizontal === true) {
                 game.playerOne.fleet[game.playerOne.currentShipIndex].verticalLayout();    
@@ -405,12 +398,32 @@ window.addEventListener('keydown', function(e) {
                 game.playerOne.fleet[game.playerOne.currentShipIndex].horizontalLayout()
             }
         }
+
+        if(e.key == 'w') {
+            game.state.win = true;
+            game.winner = game.playerOne;
+        }
     }
     
 });
 
-p1GuessBtn.onclick = p1Submit;
-p2GuessBtn.onclick = p2Submit;
+
 window.requestAnimationFrame(gameLoop);
 
 let game = new Game();
+
+game.playerTwo.fleet[0].canPlace = true;
+game.playerTwo.placeShip(game.playerTwo.fleet[0], 0,2);
+game.playerTwo.fleet[1].canPlace = true;
+game.playerTwo.placeShip(game.playerTwo.fleet[1], 2,4);
+game.playerTwo.fleet[2].canPlace = true;
+game.playerTwo.placeShip(game.playerTwo.fleet[2], 4,3);
+game.playerTwo.fleet[3].canPlace = true;
+game.playerTwo.placeShip(game.playerTwo.fleet[3], 1,7);
+game.playerTwo.fleet[4].canPlace = true;
+game.playerTwo.placeShip(game.playerTwo.fleet[4], 7,1);
+// game.playerTwo.placeShip(game.playerTwo.fleet[0], 4,6);
+// game.playerTwo.placeShip(game.playerTwo.fleet[1], 5,7);
+// game.playerTwo.placeShip(game.playerTwo.fleet[2], 7,1);
+// game.playerTwo.placeShip(game.playerTwo.fleet[3], 3,3);
+// game.playerTwo.placeShip(game.playerTwo.fleet[4], 5,7);
